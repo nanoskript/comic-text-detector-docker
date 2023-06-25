@@ -38,7 +38,7 @@ async def route_index():
 
 @app.post("/comic-text-detector-blocks", summary="Detect regions of text in an image.")
 async def route_comic_text_detector_blocks(image: bytes = File()) -> list[Block]:
-    image = Image.open(io.BytesIO(image))
+    image = Image.open(io.BytesIO(image)).convert("RGBA")
     _mask, _mask_refined, blocks = detector(np.asarray(image))
 
     return [
@@ -54,6 +54,6 @@ async def route_comic_text_detector_blocks(image: bytes = File()) -> list[Block]
 
 @app.post("/comic-text-detector-mask", summary="Mask regions of text in an image.")
 async def route_comic_text_detector_mask(image: bytes = File()):
-    image = Image.open(io.BytesIO(image))
+    image = Image.open(io.BytesIO(image)).convert("RGBA")
     _mask, mask_refined, _blocks = detector(np.asarray(image), keep_undetected_mask=True)
     return send_image(Image.fromarray(mask_refined))
