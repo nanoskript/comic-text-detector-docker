@@ -18,11 +18,19 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"])
 detector = TextDetector("./models/comictextdetector.pt.onnx")
 
 
+class Line(BaseModel):
+    xa: int
+    ya: int
+    xb: int
+    yb: int
+
+
 class Block(BaseModel):
     xa: int
     ya: int
     xb: int
     yb: int
+    lines: list[Line]
 
 
 def send_image(image):
@@ -47,6 +55,15 @@ async def route_comic_text_detector_blocks(image: bytes = File()) -> list[Block]
             ya=block.xyxy[1],
             xb=block.xyxy[2],
             yb=block.xyxy[3],
+            lines=[
+                Line(
+                    xa=min([line[0][0], line[1][0], line[2][0], line[3][0]]),
+                    ya=min([line[0][1], line[1][1], line[2][1], line[3][1]]),
+                    xb=max([line[0][0], line[1][0], line[2][0], line[3][0]]),
+                    yb=max([line[0][1], line[1][1], line[2][1], line[3][1]]),
+                )
+                for line in block.lines
+            ],
         )
         for block in blocks
     ]
